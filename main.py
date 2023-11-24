@@ -1,4 +1,4 @@
-from check import check_balance_btc
+from check import check_balance_btc, add_proxy_service_token, initialize_proxy_services, set_request_timeout
 import threading
 from discord_webhook import DiscordWebhook
 import argparse
@@ -6,6 +6,11 @@ import os
 from colorama import init
 from time import sleep
 init()
+
+proxy_arg_var_max = 1
+proxy_arg_var_service_names = {
+	0: "PrivateKeeper",
+}
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -29,9 +34,34 @@ parser.add_argument(
 	action="store_true",
 )
 parser.add_argument("-d", "--discord", help="send a discord notification.")
+parser.add_argument(
+	"-tt",
+	"--timeout",
+	help="Python requests timeout (default: 30)",
+	type=int,
+	default=30,
+)
+
+for i in range(proxy_arg_var_max):
+	parser.add_argument(
+		"-p%d" % (i,),
+		"--proxy%d" % (i,),
+		help="%s proxy api token" % (proxy_arg_var_service_names[i]),
+		type=str,
+	)
 
 args = parser.parse_args()
 lock = threading.Lock()
+
+if args.timeout:
+	set_request_timeout(args.timeout)
+
+for i in range(proxy_arg_var_max):
+	var_value = getattr(args, "proxy%d" % (i,))
+	if var_value:
+		add_proxy_service_token(proxy_arg_var_service_names[i], var_value)
+
+initialize_proxy_services()
 
 
 class bcolors:
@@ -87,9 +117,8 @@ def main():
 								flush=True,
 							)
 						sleep(0.01)
-			except (TypeError, AttributeError):
-				print("You are rate-limited please switch to a vpn/proxy or you dont have connection")
-				pass
+			except Exception as e:
+				print(e)
 
 
 if __name__ == "__main__":
