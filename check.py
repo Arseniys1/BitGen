@@ -35,6 +35,8 @@ def add_proxy_service_token(proxy_service, api_token):
 
 
 def private_keeper_handler(proxy_types_list=None):
+	proxies_list["PrivateKeeper"] = []
+	not_working_proxies_counter["PrivateKeeper"] = 0
 	if not proxy_types_list:
 		proxy_types_list = proxy_types
 	url = "https://pk.community/v2/proxylist.txt?key=%s&type=%s" % (proxy_services_api_tokens["PrivateKeeper"], ",".join(proxy_types_list))
@@ -51,11 +53,14 @@ def private_keeper_handler(proxy_types_list=None):
 				proxies_list["PrivateKeeper"].append(proxy_string)
 
 
+def load_proxy_service(proxy_service_name):
+	if proxy_service_name == "PrivateKeeper":
+		private_keeper_handler()
+
+
 def initialize_proxy_services():
 	for proxy_service_name, api_token in proxy_services_api_tokens.items():
-		if proxy_service_name == "PrivateKeeper":
-			private_keeper_handler()
-
+		load_proxy_service(proxy_service_name)
 
 
 def generate_addresses(count):
@@ -94,6 +99,9 @@ def check_balance_btc(data=generate_addresses(100)):
 			})
 		return extract
 	except Exception as e:
+		not_working_proxies_counter[proxy_service] = not_working_proxies_counter[proxy_service] + 1
+		if not_working_proxies_counter[proxy_service] >= len(proxies_list[proxy_service]):
+			load_proxy_service(proxy_service)
 		print(e)
 		return []
 
