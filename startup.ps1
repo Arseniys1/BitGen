@@ -1,1 +1,0 @@
-Invoke-Command {cmd.exe /c start.bat}

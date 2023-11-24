@@ -1,8 +1,8 @@
 @echo off
 
-set privatekeeperapitoken=none
-set timeout=15
-set threads=50
+set privatekeeperapitoken=
+set timeout=30
+set threads=100
 
 IF EXIST ".\venv" (
     echo Use venv python
